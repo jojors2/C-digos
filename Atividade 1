@@ -1,0 +1,38 @@
+#include <stdio.h>
+#include <locale.h> 
+void separacao (){
+  printf ("---------------------------------------\n");
+}
+void cadastro_hospede(int i){
+  separacao();
+  printf ("Informe quantos hóspedes deseja cadastrar:\n");
+  printf("OBS: Número máximo de hospedes é de 20.\n");
+  scanf ("%d", &i);
+  separacao();
+  if (i > 20){
+    printf ("Número de hóspedes excede o limite de cadastro.\n");
+    cadastro_hospede(i);
+  } else {
+      printf ("Número de hóspedes cadastrados é: %d\n", i);
+  }
+}
+void dados_cadastro(float peso_entrada, char nome [50], int num_ficha, int qnt_dias){
+  printf ("Informe o números da ficha do hóspede:\n");
+  scanf  ("%d", num_ficha);
+  printf ("Informe o nome do hóspede:\n");
+  getchar();
+  fgets(nome, 50, stdin);
+  printf ("Inofrme a quantidade de dias do tratamento:\n");
+  printf ("Informe o peso do hóspede:\n");
+  scanf ("%f", peso_entrada);
+}
+int main(void) {
+  int i,num_ficha;
+  float peso_entrada;
+  char nome [50];
+  setlocale(LC_ALL, "Portuguese"); 
+  cadastro_hospede(i);
+  separacao();
+  dados_cadastro(peso_entrada, nome);
+  return 0;
+}
