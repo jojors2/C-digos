@@ -1,38 +1,308 @@
 #include <stdio.h>
-#include <locale.h> 
+#include <locale.h>
+#include <string.h>
 void separacao (){
-  printf ("---------------------------------------\n");
+    printf ("--------------------------------------\n");
 }
-void cadastro_hospede(int i){
-  separacao();
-  printf ("Informe quantos hóspedes deseja cadastrar:\n");
-  printf("OBS: Número máximo de hospedes é de 20.\n");
-  scanf ("%d", &i);
-  separacao();
-  if (i > 20){
-    printf ("Número de hóspedes excede o limite de cadastro.\n");
-    cadastro_hospede(i);
-  } else {
-      printf ("Número de hóspedes cadastrados é: %d\n", i);
-  }
+
+void num_hospedes (int *i){
+    separacao();
+    printf ("Informe o número de hóspedes que deseja cadastrar:\n");
+    printf ("OBS: Máximo de 20 hóspedes.\n");
+    scanf ("%d", i);
+    separacao();
+
+    if (*i > 20){
+        printf ("Número de hóspede excede o limite de cadastro.");
+        num_hospedes (i);
+    }
+    else {
+        if (*i > 1){
+            printf ("Hóspedes cadastrados com sucesso!\n");
+            separacao();
+        }
+        else {
+            printf ("Hóspede cadastrado com sucesso!\n");
+            separacao();
+        }
+    }
 }
-void dados_cadastro(float peso_entrada, char nome [50], int num_ficha, int qnt_dias){
-  printf ("Informe o números da ficha do hóspede:\n");
-  scanf  ("%d", num_ficha);
-  printf ("Informe o nome do hóspede:\n");
-  getchar();
-  fgets(nome, 50, stdin);
-  printf ("Inofrme a quantidade de dias do tratamento:\n");
-  printf ("Informe o peso do hóspede:\n");
-  scanf ("%f", peso_entrada);
+
+typedef struct ficha_hospede{
+    int num_ficha;
+    float peso_entrada;
+    float peso_saida;
+    int qtd_dias;
+    char nome[50];
+    int alta;
+}hospede;
+
+void limpar_buffer() {
+  int c;
+  while ((c = getchar()) != '\n' && c != EOF);
 }
-int main(void) {
-  int i,num_ficha;
-  float peso_entrada;
-  char nome [50];
-  setlocale(LC_ALL, "Portuguese"); 
-  cadastro_hospede(i);
-  separacao();
-  dados_cadastro(peso_entrada, nome);
-  return 0;
+
+void cadastro_ficha (struct ficha_hospede hospede[],int i){
+    int j;
+	for (j = 0; j < i; j++){
+        printf ("Cadastro hóspede %d:\n", j+1);
+        separacao();
+
+        printf("Informe o número da ficha:\n");
+        scanf ("%d", &hospede[j].num_ficha);
+        limpar_buffer();
+        separacao();
+
+        printf ("Informe o nome do hóspede:\n");
+        fgets(hospede[j].nome, 50, stdin);
+        hospede[j].nome[strcspn(hospede[j].nome, "\n")] = '\0';
+        separacao();
+        
+       do {
+            printf("Informe quantos dias são o tratamento (máximo 30):\n");
+            scanf("%d", &hospede[j].qtd_dias);
+            if (hospede[j].qtd_dias > 30) {
+                printf("Número de dias ultrapassa o máximo.\n");
+            }
+        } while (hospede[j].qtd_dias > 30);
+        separacao();
+
+        printf ("Informe o peso do hóspede:\n");
+        scanf ("%f", &hospede[j].peso_entrada);
+        hospede[j].alta = 0;
+        separacao();
+    }
+}
+
+int buscar_hospede(struct ficha_hospede hospede [], int i, int num_ficha){
+    int j;
+	for (j = 0; j < i; j++){
+        if (hospede[j].num_ficha == num_ficha){
+            return j;
+        }
+    }
+    return -1;
+}
+
+void procurar_hospede (struct ficha_hospede hospede[], int i){
+    char n;
+    char consulta_peso_alta;
+    int alta;
+    float total_perdido = 0; int j = 0;
+    int num_ficha;
+    if (i == 1){
+        printf ("Deseja consultar o hóspede?\n");
+        printf ("1.Sim\n2.Não\n");
+        limpar_buffer();
+        scanf ("%c", &n);
+        separacao();
+        
+        switch (n){
+            case '1':
+                printf ("Consulta do hóspede:\n%s\n", hospede[j].nome);
+                separacao();
+                printf ("Informe o que deseja:\n");
+                printf ("1.Informar peso de saída\n2.Consultar alta\n");
+                limpar_buffer();
+                scanf ("%c", &consulta_peso_alta);
+                separacao ();
+                    switch (consulta_peso_alta){
+                        case '1':
+                            printf ("Digite o peso atual do hóspede:\n");
+                            scanf ("%f", &hospede[j].peso_saida);
+                            separacao();
+                            limpar_buffer();
+                            total_perdido = hospede[j].peso_entrada - hospede[j].peso_saida;
+                            printf ("Total de peso perdido durante o tratamento foi de: \n%f kg\n", total_perdido);
+                            separacao();
+                            alta_hospede (alta);
+                            finalizacao_hospede1 (hospede, i, alta);
+                            break;
+                        case '2':
+                            if (total_perdido == 0){
+                                printf ("Impossível dar alta para esse hóspede.");
+                            } else {
+                                    if (alta == 1){
+                                        printf ("Hóspede possui alta.");
+                                    } else {
+                                        printf ("Hóspede não possui alta.");
+                                        alta_hospede(alta);
+                                    }
+                            break;
+                            }               
+                        default:
+                            printf ("Opção inválida.");   
+                            return;    
+                            break;  
+                    }                       
+            break;
+            case '2':
+                printf("\nConsulta do hóspede encerrada.\n");
+                break;
+            default:
+                printf ("\nOpção inválida.\n");
+                return;
+                break;
+        }
+    } else {
+        printf ("Deseja consultar algum hóspede?\n");
+        printf ("1.Sim\n2.Não\n");
+        limpar_buffer();
+        scanf ("%c", &n);
+        separacao();
+        switch (n){
+            case '1':
+                printf ("Informe o número da ficha do hóspede:\n");
+                scanf ("%d", &num_ficha);
+                separacao();
+                j = buscar_hospede(hospede, i, num_ficha);
+                if (j != -1){
+                    printf ("Hóspede encontrado:\n%s\n", hospede[j].nome);
+                    separacao();
+                    printf ("Informe o que deseja:\n");
+                    printf ("1.Informar peso de saída\n2.Dar alta\n");
+                    limpar_buffer();
+                    scanf ("%c", &consulta_peso_alta);
+                    separacao ();
+                    switch (consulta_peso_alta){
+                        case '1':
+                            printf ("Digite o peso atual do hóspede:\n");
+                            scanf ("%f", &hospede[j].peso_saida);
+                            separacao();
+                            limpar_buffer();
+                            total_perdido = hospede[j].peso_entrada - hospede[j].peso_saida;
+                            printf ("Total de peso perdido durante o tratamento foi de: %f\n", total_perdido);
+                            separacao();
+                            alta_hospede(alta);
+                            final_hospede2(hospede, i, alta);
+                            break;
+                        case '2':
+                            if (total_perdido == 0){
+                                printf ("Impossível dar alta para esse hóspede.");
+                            } else {
+                                    if (alta == 1){
+                                        printf ("Hóspede possui alta.");
+                                    } else {
+                                        printf ("Hóspede não possui alta.");
+                                        alta_hospede(alta);
+                                        final_hospede2(hospede, i, alta);
+                                    }
+                            break;
+                            }               
+                        default:
+                            printf ("Opção inválida.");   
+                            return;    
+                            break;  
+                    }                       
+                } else {
+                    printf ("Hóspede não encontrado.\n");
+                }
+                break;
+            case '2':
+                printf("\nConsulta de hóspede encerrada.\n");
+                break;
+            default:
+                printf ("\nOpção inválida.\n");
+                return;
+                break;
+        }
+    }
+}
+
+void alta_hospede(int *alta){
+    printf ("Deseja dar alta para o hóspede?\n");
+    printf ("1.Sim\n2.Não\n");
+    scanf ("%d", alta);
+    limpar_buffer();
+    if (*alta == 1){
+        printf ("Alta autorizada.\n");
+    } 
+    else {
+        if (*alta == 2){
+            printf ("Alta não autorizada.\n");
+        } else {
+        printf ("Opção inválida.\n");
+        }
+    } 
+}
+
+void finalizacao_hospede1(struct ficha_hospede hospede[],int i, int alta){
+    char escolha, escolha2;
+    printf ("Deseja realizar mais algo?\n");
+    printf ("1.Sim\n2.Não\n");
+    scanf ("%c", &escolha);
+    limpar_buffer();
+    switch (escolha){
+        case '1':
+            printf ("1.Cadastrar hóspede\n2.Consultar alta\n");
+            scanf ("%c", &escolha2);
+            switch (escolha2){
+                case '1':
+                    cadastro_ficha (hospede,i);
+                    procurar_hospede (hospede, i);
+                    final_hospede2 (hospede, i, alta);
+                    return;
+                    break;
+                case '2':
+                    alta_hospede(alta);
+                    return;
+                    break;
+                default:
+                    printf ("Opção inválida");
+                    return;
+            }
+            break;
+        case '2':  
+            printf ("Atividade encerrada.\n");
+            separacao();
+            printf ("\tObrigada!!\n \tVolte Sempre.");
+            separacao();
+            break;                         
+    }
+    
+}
+
+void final_hospede2(struct ficha_hospede hospede[],int i, int alta){
+    char escolha, escolha2;
+    printf ("Deseja realizar mais algo?\n");
+    printf ("1.Sim\n2.Não\n");
+    scanf ("%c", &escolha);
+    limpar_buffer();
+    switch (escolha){
+        case '1':
+            printf ("1.Cadastrar hóspede\n2.Dar alta\n3.Procurar hóspede\n");
+            scanf ("%c", &escolha2);
+            switch (escolha2){
+                case '1':
+                    cadastro_ficha (hospede,i);
+                    procurar_hospede (hospede, i);
+                    break;
+                case '2':
+                    alta_hospede(alta);
+                    break;
+                case '3': 
+                    procurar_hospede (hospede, i);
+                default:
+                    printf ("Opção inválida");
+                    return;
+            }
+            break;
+        case '2':  
+            printf ("Atividade encerrada.\n");
+            separacao();
+            printf ("\tObrigada!!\n \tVolte Sempre.");
+            separacao();
+            break;                        
+    }
+    
+}
+
+int main(){
+    setlocale (LC_ALL,"Portuguese");
+    int i;
+    num_hospedes (&i);
+    struct ficha_hospede hospede[20];
+    cadastro_ficha(hospede,i);
+    procurar_hospede(hospede, i);
+    return 0;
 }
